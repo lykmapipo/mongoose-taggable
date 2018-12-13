@@ -72,6 +72,18 @@ describe('taggable', () => {
     const User = model(schema);
 
     const user = new User();
+    user.tag('js ninja', 'nodejs');
+    expect(user.tags).to.include('js');
+    expect(user.tags).to.include('ninja');
+    expect(user.tags).to.include('nodejs');
+  });
+
+  it('should be able to tag', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User();
     user.tag('JS', 'NODEJS');
     expect(user.tags).to.include('js');
     expect(user.tags).to.not.include('JS');
@@ -89,6 +101,18 @@ describe('taggable', () => {
     user.untag('js');
     expect(user.tags).to.include('nodejs');
     expect(user.tags).to.not.include('js');
+  });
+
+  it('should collect tags from taggable paths', () => {
+    const schema = new Schema({ name: { type: String, taggable: true } });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ name: 'John Doe' });
+    user.validate(() => {
+      expect(user.tags).to.include('john');
+      expect(user.tags).to.include('doe');
+    });
   });
 
 });

@@ -5,6 +5,23 @@
 const _ = require('lodash');
 const { eachPath } = require('@lykmapipo/mongoose-common');
 
+/**
+ * @function words
+ * @name words
+ * @description extract words from a tag
+ * @param {String} tag a tag to extract words from
+ * @return {String[]} array of words from a tag
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ */
+function words(tag) {
+  const _words = tag ? String(tag).match(/\w+/g) : undefined;
+  return _words;
+}
+
 
 /**
  * @function normalizeTags
@@ -24,6 +41,8 @@ function normalizeTags(...tags) {
   _tags = _.compact(_tags);
   // convert tags to lowercase
   _tags = _.map(_tags, _.toLower);
+  // convert tags to discrete words
+  _tags = _.flattenDeep(_.map(_tags, words));
   // ensure unique tags
   _tags = _.uniq(_tags);
   // return normalized tags
@@ -63,8 +82,10 @@ function taggable(schema, optns) {
     // check if path is taggale
     const isTaggable = (schemaType.options && schemaType.options.taggable);
     if (isTaggable && pathName !== path) {
+      // obtain taggable options
+      const taggableOptns = _.get(schemaType.options, 'taggable');
       // collect taggable schema path
-      taggables[pathName] = schemaType.options;
+      taggables[pathName] = taggableOptns;
     }
   });
   schema.statics.TAGGABLE_FIELDS = taggables;
@@ -118,6 +139,20 @@ function taggable(schema, optns) {
     // set and update tags
     this[path] = _tags;
   };
+
+
+  schema.pre('validate', function collectTags() {
+    // obtain object definition
+    const obj = this.toObject();
+    // obtain taggable values
+    let tags = _.map(taggables, function getTagFromProp(value, key) {
+      let tag = obj[key];
+      tag = _.isFunction(value) ? value(tag) : tag;
+      return tag;
+    });
+    // tag instance
+    this.tag(...tags);
+  });
 
 }
 
