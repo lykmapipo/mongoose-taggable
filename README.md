@@ -25,6 +25,11 @@ UserSchema.plugin(taggable);
 const User = mongoose.model('User', UserSchema);
 
 const user = new User({ name: 'John Doe', tags: ['developer'] });
+
+// generate tags from taggable paths
+user.save((error, saved) => { ... });
+
+// tag instance direct
 user.tag('js', 'nodejs', 'express', 'mongoose');
 user.untag('angular');
 user.save((error, saved) => { ... });
