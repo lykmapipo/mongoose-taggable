@@ -35,6 +35,7 @@
     }
   ],
   "devDependencies": {
+    "@lykmapipo/include": "^0.1.0",
     "@lykmapipo/mongoose-test-helpers": "^0.2.0",
     "async": "^2.6.1",
     "chai": "^4.2.0",
@@ -53,7 +54,6 @@
     "mongoose": ">=5.3.16"
   },
   "dependencies": {
-    "@lykmapipo/include": ">=0.1.0",
     "@lykmapipo/mongoose-common": ">=0.1.0"
   }
 }
