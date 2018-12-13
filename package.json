@@ -1,0 +1,59 @@
+{
+  "name": "@lykmapipo/mongoose-taggable",
+  "version": "0.1.0",
+  "description": "mongoose plugin to add tags and taggable behaviour",
+  "keywords": [
+    "mongoose",
+    "mongoose-plugin",
+    "lykmapipo",
+    "tag",
+    "keyword",
+    "taggable"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lykmapipo/mongoose-taggable.git"
+  },
+  "author": {
+    "name": "lykmapipo",
+    "email": "lallyelias87@gmail.com",
+    "url": "https://github.com/lykmapipo"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lykmapipo/mongoose-taggable/issues"
+  },
+  "homepage": "https://github.com/lykmapipo/mongoose-taggable",
+  "contributors": [
+    {
+      "name": "lykmapipo",
+      "github": "https://github.com/lykmapipo"
+    }
+  ],
+  "devDependencies": {
+    "@lykmapipo/mongoose-test-helpers": "^0.2.0",
+    "async": "^2.6.1",
+    "chai": "^4.2.0",
+    "grunt": "^1.0.3",
+    "grunt-contrib-jshint": "^2.0.0",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-mocha-test": "^0.13.3",
+    "jshint-stylish": "^2.2.1",
+    "lodash": "^4.17.11",
+    "mocha": "^5.2.0",
+    "mongoose": "^5.3.16"
+  },
+  "peerDependencies": {
+    "async": ">=2.6.1",
+    "lodash": ">=4.17.11",
+    "mongoose": ">=5.3.16"
+  },
+  "dependencies": {
+    "@lykmapipo/include": ">=0.1.0",
+    "@lykmapipo/mongoose-common": ">=0.1.0"
+  }
+}
