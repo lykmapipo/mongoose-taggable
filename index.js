@@ -5,6 +5,7 @@
 const _ = require('lodash');
 const { eachPath } = require('@lykmapipo/mongoose-common');
 
+
 /**
  * @function words
  * @name words
@@ -103,7 +104,7 @@ function taggable(schema, optns) {
    * @instance
    * @example
    * const user = new User();
-   * user.tag('js', 'nodejs', 'expressjs');
+   * user.tag('js ninja', 'nodejs', 'expressjs');
    */
   schema.methods.tag = function tag(...tags) {
     // obtain existing tags
@@ -129,7 +130,7 @@ function taggable(schema, optns) {
    * @instance
    * @example
    * const user = new User();
-   * user.untag('js');
+   * user.untag('js', 'angular');
    */
   schema.methods.untag = function untag(...tags) {
     // normalize provided tags
@@ -141,6 +142,16 @@ function taggable(schema, optns) {
   };
 
 
+  /**
+   * @function preValidate
+   * @name preValidate
+   * @descriptions generate tags from taggable paths and set into tags path
+   * @author lally elias <lallyelias87@mail.com>
+   * @license MIT
+   * @since  0.1.0
+   * @version 0.1.0
+   * @private
+   */
   schema.pre('validate', function collectTags() {
     // obtain object definition
     const obj = this.toObject();
@@ -150,7 +161,7 @@ function taggable(schema, optns) {
       tag = _.isFunction(value) ? value(tag) : tag;
       return tag;
     });
-    // tag instance
+    // tag model instance
     this.tag(...tags);
   });
 
