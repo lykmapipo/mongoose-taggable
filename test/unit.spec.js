@@ -24,7 +24,7 @@ describe('taggable', () => {
     expect(tags.options.index).to.be.true;
   });
 
-  it('should add tags path on schema', () => {
+  it('should add tags path on schema with options', () => {
     const schema = new Schema({ name: String });
     schema.plugin(taggable, { path: 'keywords', index: 'text' });
     const User = model(schema);
@@ -35,6 +35,24 @@ describe('taggable', () => {
     expect(keywords.options).to.exist;
     expect(keywords.options.searchable).to.be.true;
     expect(keywords.options.index).to.be.equal('text');
+  });
+
+  it('should collect taggable paths', () => {
+    const schema = new Schema({ name: { type: String, taggable: true } });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    expect(User.TAGGABLE_FIELDS).to.exist;
+    expect(User.TAGGABLE_FIELDS.name).to.exist;
+  });
+
+  it('should not collect non taggable paths', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    expect(User.TAGGABLE_FIELDS).to.exist;
+    expect(User.TAGGABLE_FIELDS.name).to.not.exist;
   });
 
 });

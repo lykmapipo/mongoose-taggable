@@ -3,7 +3,7 @@
 
 /* dependencies */
 const _ = require('lodash');
-// const { eachPath } = require('@lykmapipo/mongoose-common');
+const { eachPath } = require('@lykmapipo/mongoose-common');
 
 
 /**
@@ -31,6 +31,18 @@ function taggable(schema, optns) {
   schema.add({
     [path]: { type: [String], index, searchable }
   });
+
+  // collect taggable path
+  const taggables = {};
+  eachPath(schema, function collectTaggable(pathName, schemaType) {
+    // check if path is taggale
+    const isTaggable = (schemaType.options && schemaType.options.taggable);
+    if (isTaggable && pathName !== path) {
+      // collect taggable schema path
+      taggables[pathName] = schemaType.options;
+    }
+  });
+  schema.statics.TAGGABLE_FIELDS = taggables;
 
 }
 
