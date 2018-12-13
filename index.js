@@ -10,7 +10,7 @@ const { eachPath } = require('@lykmapipo/mongoose-common');
  * @function normalizeTags
  * @name normalizeTags
  * @description clear, compact and lowercase tags
- * @param  {...String} tags list of tags
+ * @param {...String} tags list of tags
  * @return {String[]} array of normalized tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
@@ -26,7 +26,7 @@ function normalizeTags(...tags) {
   _tags = _.map(_tags, _.toLower);
   // ensure unique tags
   _tags = _.uniq(_tags);
-
+  // return normalized tags
   return _tags;
 }
 
@@ -70,6 +70,20 @@ function taggable(schema, optns) {
   schema.statics.TAGGABLE_FIELDS = taggables;
 
 
+  /**
+   * @function tag
+   * @name tag
+   * @descriptions add tags to a model instance
+   * @param {...String} tags set of tags to add to model instance
+   * @author lally elias <lallyelias87@mail.com>
+   * @license MIT
+   * @since  0.1.0
+   * @version 0.1.0
+   * @instance
+   * @example
+   * const user = new User();
+   * user.tag('js', 'nodejs', 'expressjs');
+   */
   schema.methods.tag = function tag(...tags) {
     // obtain existing tags
     let _tags = [...this[path]];
@@ -82,6 +96,20 @@ function taggable(schema, optns) {
   };
 
 
+  /**
+   * @function untag
+   * @name untag
+   * @descriptions remove tags from a model instance
+   * @param {...String} tags set of tags to remove from model instance
+   * @author lally elias <lallyelias87@mail.com>
+   * @license MIT
+   * @since  0.1.0
+   * @version 0.1.0
+   * @instance
+   * @example
+   * const user = new User();
+   * user.untag('js');
+   */
   schema.methods.untag = function untag(...tags) {
     // normalize provided tags
     let _tags = normalizeTags(...tags);
