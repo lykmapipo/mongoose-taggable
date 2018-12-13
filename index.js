@@ -6,6 +6,19 @@ const _ = require('lodash');
 const { eachPath } = require('@lykmapipo/mongoose-common');
 
 
+function normalizeTags(...tags) {
+  let _tags = [...tags];
+  // remove falsey tags 
+  _tags = _.compact(_tags);
+  // convert tags to lowercase
+  _tags = _.map(_tags, _.toLower);
+  // ensure unique tags
+  _tags = _.uniq(_tags);
+
+  return _tags;
+}
+
+
 /**
  * @function taggable
  * @name taggable
@@ -43,6 +56,28 @@ function taggable(schema, optns) {
     }
   });
   schema.statics.TAGGABLE_FIELDS = taggables;
+
+
+  schema.methods.tag = function tag(...tags) {
+    // obtain existing tags
+    let _tags = [...this[path]];
+    // merge provided tags
+    _tags = [..._tags].concat(...tags);
+    // normalize tags
+    _tags = normalizeTags(..._tags);
+    // set and update tags
+    this[path] = _tags;
+  };
+
+
+  schema.methods.untag = function untag(...tags) {
+    // normalize provided tags
+    let _tags = normalizeTags(...tags);
+    // remove from tags
+    _tags = _.difference(this[path], _tags);
+    // set and update tags
+    this[path] = _tags;
+  };
 
 }
 

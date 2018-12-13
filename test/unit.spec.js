@@ -55,4 +55,27 @@ describe('taggable', () => {
     expect(User.TAGGABLE_FIELDS.name).to.not.exist;
   });
 
+  it('should be able to tag', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('js', 'nodejs');
+    expect(user.tags).to.include('js');
+    expect(user.tags).to.include('nodejs');
+  });
+
+  it('should be able to untag', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('js', 'nodejs');
+    user.untag('js');
+    expect(user.tags).to.include('nodejs');
+    expect(user.tags).to.not.include('js');
+  });
+
 });
