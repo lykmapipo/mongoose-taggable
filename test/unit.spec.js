@@ -114,6 +114,17 @@ describe('taggable', () => {
     expect(user.tags).to.include('doe');
   });
 
+  it('should collect tags from taggable array paths', () => {
+    const schema = new Schema({ interests: { type: [String], taggable: true } });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ interests: ['Cooking', 'Talking'] });
+    user.tag();
+    expect(user.tags).to.include('cooking');
+    expect(user.tags).to.include('talking');
+  });
+
   it('should collect tags from taggable sub paths', () => {
     const schema = new Schema({
       name: {
