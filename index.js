@@ -84,26 +84,83 @@ function normalizeTags(...tags) {
 
 
 /**
- * @function tagFromMapField
- * @name tagFromMapField
- * @description derive tags from map schematype
- * @param {MongooseMap} mapVal valid instance of MongooseMap
+ * @function tagFromAnyField
+ * @name tagFromAnyField
+ * @description derive tags from other schematype
+ * @param {String|Number|Date} val valid value
+ * @param {Function} [extract] field tag extractor
  * @return {String[]} set of tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
  * @private
+ * const tags = tagFromAnyField(<val>); // ['js', 'node']
+ * const tags = tagFromAnyField(<val>, <extractor>); // ['js', 'node']
  */
-function tagFromMapField(mapVal) {
+function tagFromAnyField(value, extract) {
+  let _tags = [];
+  let _value = _.clone(value);
+  _value = _.isFunction(extract) ? extract(_value) : _value;
+  _tags = [..._tags].concat(_value);
+  return _tags;
+}
+
+
+/**
+ * @function tagFromMapField
+ * @name tagFromMapField
+ * @description derive tags from map schematype
+ * @param {MongooseMap} mapVal valid instance of MongooseMap
+ * @param {Function} [extract] field tag extractor
+ * @return {String[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * const tags = tagFromMapField(<val>); // ['js', 'node']
+ * const tags = tagFromMapField(<val>, <extractor>); // ['js', 'node']
+ */
+function tagFromMapField(mapVal, extract) {
   let _tags = [];
   if (mapVal && isMap(mapVal)) {
     const _mapVal = _.merge({}, mapVal.toJSON());
     traverse(_mapVal).forEach(function tagMapVal(value) {
       if (_.isString(value)) {
-        _tags = [..._tags].concat(value);
+        let _value = _.clone(value);
+        _value = _.isFunction(extract) ? extract(_value) : _value;
+        _tags = [..._tags].concat(_value);
       }
     });
+  }
+  return _tags;
+}
+
+
+/**
+ * @function tagFromInstanceField
+ * @name tagFromInstanceField
+ * @description derive tags from ref which are model instance with taggable 
+ * behaviour
+ * @param {Model} [instance] valid instance of mongoose model which is taggable
+ * @param {Function} [extract] field tag extractor
+ * @return {String[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * const tags = tagFromInstanceField(<instance>); // ['js']
+ * const tags = tagFromInstanceField(<instance>, <extractor>); // ['js']
+ */
+function tagFromInstanceField(instance, extract) {
+  let _tags = [];
+  if (instance && _.isFunction(instance.tag)) {
+    instance.tag();
+    let _value = [].concat(instance.tags);
+    _value = _.isFunction(extract) ? extract(_value) : _value;
+    _tags = [..._tags].concat(_value);
   }
   return _tags;
 }
@@ -123,27 +180,23 @@ function tagFromMapField(mapVal) {
  * @example
  * const tags = tagFromFields(user, taggables, 'tags'); // ['js', 'node']
  */
-function tagFromFields(instance, taggables /*, tagsPath*/ ) {
-  //cache
+function tagFromFields(instance, taggables) {
+  // tag set
   let _tags = [];
   // collect tags from taggable fields
   _.forEach(taggables, function tagFromField(extract, pathName) {
-    // obtain tag from field
-    let tag = _.get(instance, pathName);
-    _tags = [..._tags].concat(tagFromMapField(tag));
-    if (!isObjectId(tag)) {
-      // TODO handle simple array and array of sub doc
-      // extract tags from ref
-      if (tag && _.isFunction(tag.tag)) {
-        tag.tag();
-        tag = tag.tags;
-      }
-      // extract tags per field tag extractor
-      tag = _.isFunction(extract) ? extract(tag) : tag;
-      // add extracted tags
-      _tags = [].concat(_tags).concat(tag);
-    }
+    // obtain field value
+    const value = _.get(instance, pathName);
+    // ignore objectid's
+    if (isObjectId(value)) { return; }
+    // tag from map field
+    _tags = [..._tags, ...tagFromMapField(value, extract)];
+    // tag from model instance
+    _tags = [..._tags, ...tagFromInstanceField(value, extract)];
+    // tag from primitive field
+    _tags = [..._tags, ...tagFromAnyField(value, extract)];
   });
+  // return tags
   return _tags;
 }
 
@@ -163,11 +216,13 @@ function tagFromFields(instance, taggables /*, tagsPath*/ ) {
  * const taggables = collectTaggables(schema, 'tags');
  */
 function collectTaggables(schema, tagsPath) {
-  // cache
+  // taggable map
   const taggables = {};
+  // collect taggable schema paths
   eachPath(schema, function collectTaggablePath(pathName, schemaType) {
     // check if path is taggable
     const isTaggable = (schemaType.options && schemaType.options.taggable);
+    // if taggable collect
     if (isTaggable && pathName !== tagsPath) {
       // obtain taggable options
       const optns = _.get(schemaType.options, 'taggable');
