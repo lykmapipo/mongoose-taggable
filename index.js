@@ -84,8 +84,8 @@ function normalizeTags(...tags) {
 
 
 /**
- * @function tagFromMap
- * @name tagFromMap
+ * @function tagFromMapField
+ * @name tagFromMapField
  * @description derive tags from map schematype
  * @param {MongooseMap} mapVal valid instance of MongooseMap
  * @return {String[]} set of tags
@@ -95,7 +95,7 @@ function normalizeTags(...tags) {
  * @version 0.1.0
  * @private
  */
-function tagFromMap(mapVal) {
+function tagFromMapField(mapVal) {
   let _tags = [];
   if (mapVal && isMap(mapVal)) {
     const _mapVal = _.merge({}, mapVal.toJSON());
@@ -105,6 +105,45 @@ function tagFromMap(mapVal) {
       }
     });
   }
+  return _tags;
+}
+
+
+/**
+ * @function tagFromFields
+ * @name tagFromFields
+ * @description derive tags from instance fields
+ * @param {MongooseMap} mapVal valid instance of MongooseMap
+ * @return {String[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * const tags = tagFromFields(user, taggables, 'tags'); // ['js', 'node']
+ */
+function tagFromFields(instance, taggables /*, tagsPath*/ ) {
+  //cache
+  let _tags = [];
+  // collect tags from taggable fields
+  _.forEach(taggables, function tagFromField(extract, pathName) {
+    // obtain tag from field
+    let tag = _.get(instance, pathName);
+    _tags = [..._tags].concat(tagFromMapField(tag));
+    if (!isObjectId(tag)) {
+      // TODO handle simple array and array of sub doc
+      // extract tags from ref
+      if (tag && _.isFunction(tag.tag)) {
+        tag.tag();
+        tag = tag.tags;
+      }
+      // extract tags per field tag extractor
+      tag = _.isFunction(extract) ? extract(tag) : tag;
+      // add extracted tags
+      _tags = [].concat(_tags).concat(tag);
+    }
+  });
   return _tags;
 }
 
@@ -194,27 +233,11 @@ function taggable(schema, optns) {
     // reference
     const instance = this;
     // obtain existing tags
-    let _tags = [].concat(this[path]);
+    let _tags = this[path] ? [...this[path]] : [];
     // merge provided tags
-    _tags = [].concat(_tags).concat(...tags);
+    _tags = [..._tags, ...tags];
     // collect tags from taggable fields
-    _.forEach(taggables, function getTagFromField(extract, pathName) {
-      // obtain tag from field
-      let tag = _.get(instance, pathName);
-      _tags = [..._tags].concat(tagFromMap(tag));
-      if (!isObjectId(tag)) {
-        // TODO handle simple array and array of sub doc
-        // extract tags from ref
-        if (tag && _.isFunction(tag.tag)) {
-          tag.tag();
-          tag = tag.tags;
-        }
-        // extract tags per field tag extractor
-        tag = _.isFunction(extract) ? extract(tag) : tag;
-        // add extracted tags
-        _tags = [].concat(_tags).concat(tag);
-      }
-    });
+    _tags = [..._tags, ...tagFromFields(instance, taggables)];
     // normalize tags
     _tags = normalizeTags(..._tags);
     // set and update tags
