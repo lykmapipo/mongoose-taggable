@@ -195,6 +195,7 @@ function tagFromFields(instance, taggables) {
     _tags = [..._tags, ...tagFromInstanceField(value, extract)];
     // tag from primitive field
     _tags = [..._tags, ...tagFromAnyField(value, extract)];
+    // TODO handle array of subdoc
   });
   // return tags
   return _tags;

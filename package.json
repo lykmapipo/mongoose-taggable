@@ -8,7 +8,8 @@
     "lykmapipo",
     "tag",
     "keyword",
-    "taggable"
+    "taggable",
+    "stopwords"
   ],
   "main": "index.js",
   "scripts": {
