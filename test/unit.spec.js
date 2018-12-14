@@ -2,7 +2,7 @@
 
 
 /* dependencies */
-const { Schema, Types } = require('@lykmapipo/mongoose-common');
+const { Schema, SchemaTypes } = require('@lykmapipo/mongoose-common');
 const { model } = require('@lykmapipo/mongoose-test-helpers');
 const { include } = require('@lykmapipo/include');
 const { expect } = require('chai');
@@ -18,7 +18,7 @@ describe('taggable', () => {
 
     const tags = User.path('tags');
     expect(tags).to.exist;
-    expect(tags).to.be.instanceof(Types.Array);
+    expect(tags).to.be.instanceof(SchemaTypes.Array);
     expect(tags.options).to.exist;
     expect(tags.options.searchable).to.be.true;
     expect(tags.options.index).to.be.true;
@@ -31,7 +31,7 @@ describe('taggable', () => {
 
     const keywords = User.path('keywords');
     expect(keywords).to.exist;
-    expect(keywords).to.be.instanceof(Types.Array);
+    expect(keywords).to.be.instanceof(SchemaTypes.Array);
     expect(keywords.options).to.exist;
     expect(keywords.options.searchable).to.be.true;
     expect(keywords.options.index).to.be.equal('text');
@@ -114,6 +114,38 @@ describe('taggable', () => {
     expect(user.tags).to.include('doe');
   });
 
+  it('should collect tags from taggable sub paths', () => {
+    const schema = new Schema({
+      name: {
+        given: { type: String, taggable: true },
+        surname: { type: String, taggable: true }
+      }
+    });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ name: { given: 'John', surname: 'Doe' } });
+    user.tag();
+    expect(user.tags).to.include('john');
+    expect(user.tags).to.include('doe');
+  });
+
+  it('should collect tags from taggable subdoc paths', () => {
+    const schema = new Schema({
+      name: new Schema({
+        given: { type: String, taggable: true },
+        surname: { type: String, taggable: true }
+      })
+    });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ name: { given: 'John', surname: 'Doe' } });
+    user.tag();
+    expect(user.tags).to.include('john');
+    expect(user.tags).to.include('doe');
+  });
+
   it('should collect tags from taggable ref', () => {
     const UserSchema = new Schema({ name: { type: String, taggable: true } });
     UserSchema.plugin(taggable);
@@ -121,7 +153,11 @@ describe('taggable', () => {
 
     const PostSchema = new Schema({
       title: { type: String, taggable: true },
-      author: { type: Types.ObjectId, ref: User.modelName, taggable: true }
+      author: {
+        type: SchemaTypes.ObjectId,
+        ref: User.modelName,
+        taggable: true
+      }
     });
     PostSchema.plugin(taggable);
     const Post = model(PostSchema);
@@ -131,6 +167,31 @@ describe('taggable', () => {
     post.tag();
     expect(post.tags).to.include('john');
     expect(post.tags).to.include('doe');
+    expect(post.tags).to.include('js');
+    expect(post.tags).to.include('talks');
+  });
+
+  it('should collect tags from taggable ref', () => {
+    const UserSchema = new Schema({ name: { type: String, taggable: true } });
+    UserSchema.plugin(taggable);
+    const User = model(UserSchema);
+
+    const PostSchema = new Schema({
+      title: { type: String, taggable: true },
+      author: {
+        type: SchemaTypes.ObjectId,
+        ref: User.modelName,
+        taggable: true
+      }
+    });
+    PostSchema.plugin(taggable);
+    const Post = model(PostSchema);
+
+    const author = new User({ name: 'John Doe' });
+    const post = new Post({ title: 'JS Talks', author: author._id });
+    post.tag();
+    expect(post.tags).to.not.include('john');
+    expect(post.tags).to.not.include('doe');
     expect(post.tags).to.include('js');
     expect(post.tags).to.include('talks');
   });

@@ -3,8 +3,8 @@
 
 /* dependencies */
 const _ = require('lodash');
-// const { Model } = require('mongoose');
-const { eachPath } = require('@lykmapipo/mongoose-common');
+const { eachPath, isObjectId } = require('@lykmapipo/mongoose-common');
+
 
 
 /**
@@ -118,15 +118,18 @@ function taggable(schema, optns) {
     _.forEach(taggables, function getTagFromField(extract, pathName) {
       // obtain tag from field
       let tag = _.get(instance, pathName);
-      // extract tags from ref
-      if (tag && _.isFunction(tag.tag)) {
-        tag.tag();
-        tag = tag.tags;
+      if (!isObjectId(tag)) {
+        // TODO handle simple array and array of sub doc
+        // extract tags from ref
+        if (tag && _.isFunction(tag.tag)) {
+          tag.tag();
+          tag = tag.tags;
+        }
+        // extract tags per field tag extractor
+        tag = _.isFunction(extract) ? extract(tag) : tag;
+        // add extracted tags
+        _tags = [].concat(_tags).concat(tag);
       }
-      // extract tags per field tag extractor
-      tag = _.isFunction(extract) ? extract(tag) : tag;
-      // add extracted tags
-      _tags = [].concat(_tags).concat(tag);
     });
     // normalize tags
     _tags = normalizeTags(..._tags);
