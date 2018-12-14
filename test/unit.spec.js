@@ -109,10 +109,30 @@ describe('taggable', () => {
     const User = model(schema);
 
     const user = new User({ name: 'John Doe' });
-    user.validate(() => {
-      expect(user.tags).to.include('john');
-      expect(user.tags).to.include('doe');
+    user.tag();
+    expect(user.tags).to.include('john');
+    expect(user.tags).to.include('doe');
+  });
+
+  it('should collect tags from taggable ref', () => {
+    const UserSchema = new Schema({ name: { type: String, taggable: true } });
+    UserSchema.plugin(taggable);
+    const User = model(UserSchema);
+
+    const PostSchema = new Schema({
+      title: { type: String, taggable: true },
+      author: { type: Types.ObjectId, ref: User.modelName, taggable: true }
     });
+    PostSchema.plugin(taggable);
+    const Post = model(PostSchema);
+
+    const author = new User({ name: 'John Doe' });
+    const post = new Post({ title: 'JS Talks', author: author });
+    post.tag();
+    expect(post.tags).to.include('john');
+    expect(post.tags).to.include('doe');
+    expect(post.tags).to.include('js');
+    expect(post.tags).to.include('talks');
   });
 
 });

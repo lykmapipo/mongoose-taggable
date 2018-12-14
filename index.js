@@ -3,6 +3,7 @@
 
 /* dependencies */
 const _ = require('lodash');
+// const { Model } = require('mongoose');
 const { eachPath } = require('@lykmapipo/mongoose-common');
 
 
@@ -74,7 +75,7 @@ function taggable(schema, optns) {
   // add tag schema paths
   const { path, index, searchable } = options;
   schema.add({
-    [path]: { type: [String], index, searchable }
+    [path]: { type: [String], index, searchable, default: undefined }
   });
 
   // collect taggable path
@@ -107,10 +108,26 @@ function taggable(schema, optns) {
    * user.tag('js ninja', 'nodejs', 'expressjs');
    */
   schema.methods.tag = function tag(...tags) {
+    // reference
+    const instance = this;
     // obtain existing tags
-    let _tags = [...this[path]];
+    let _tags = [].concat(this[path]);
     // merge provided tags
-    _tags = [..._tags].concat(...tags);
+    _tags = [].concat(_tags).concat(...tags);
+    // collect tags from taggable fields
+    _.forEach(taggables, function getTagFromField(extract, pathName) {
+      // obtain tag from field
+      let tag = _.get(instance, pathName);
+      // extract tags from ref
+      if (tag && _.isFunction(tag.tag)) {
+        tag.tag();
+        tag = tag.tags;
+      }
+      // extract tags per field tag extractor
+      tag = _.isFunction(extract) ? extract(tag) : tag;
+      // add extracted tags
+      _tags = [].concat(_tags).concat(tag);
+    });
     // normalize tags
     _tags = normalizeTags(..._tags);
     // set and update tags
@@ -152,18 +169,7 @@ function taggable(schema, optns) {
    * @version 0.1.0
    * @private
    */
-  schema.pre('validate', function collectTags() {
-    // obtain object definition
-    const obj = this.toObject();
-    // obtain taggable values
-    let tags = _.map(taggables, function getTagFromProp(value, key) {
-      let tag = obj[key];
-      tag = _.isFunction(value) ? value(tag) : tag;
-      return tag;
-    });
-    // tag model instance
-    this.tag(...tags);
-  });
+  schema.pre('validate', function preValidate() { this.tag(); });
 
 }
 
