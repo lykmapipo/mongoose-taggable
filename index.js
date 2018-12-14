@@ -53,6 +53,37 @@ function normalizeTags(...tags) {
 
 
 /**
+ * @function collectTaggables
+ * @name collectTaggables
+ * @description collect schema taggable fields
+ * @param  {String} pathName path name
+ * @param  {SchemaType} schemaType SchemaType of a path
+ * @return {Object} hash of all schema taggable paths
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ */
+function collectTaggables(schema, tagsPath) {
+  // cache
+  const taggables = {};
+  eachPath(schema, function collectTaggablePath(pathName, schemaType) {
+    // check if path is taggale
+    const isTaggable = (schemaType.options && schemaType.options.taggable);
+    if (isTaggable && pathName !== tagsPath) {
+      // obtain taggable options
+      const taggableOptns = _.get(schemaType.options, 'taggable');
+      // collect taggable schema path
+      taggables[pathName] = taggableOptns;
+    }
+  });
+  // return collect taggable schema paths
+  return taggables;
+}
+
+
+/**
  * @function taggable
  * @name taggable
  * @description mongoose plugin to add tags and taggable behaviour
@@ -78,18 +109,8 @@ function taggable(schema, optns) {
     [path]: { type: [String], index, searchable, default: undefined }
   });
 
-  // collect taggable path
-  const taggables = {};
-  eachPath(schema, function collectTaggable(pathName, schemaType) {
-    // check if path is taggale
-    const isTaggable = (schemaType.options && schemaType.options.taggable);
-    if (isTaggable && pathName !== path) {
-      // obtain taggable options
-      const taggableOptns = _.get(schemaType.options, 'taggable');
-      // collect taggable schema path
-      taggables[pathName] = taggableOptns;
-    }
-  });
+  // collect taggable schema paths
+  const taggables = collectTaggables(schema, path);
   schema.statics.TAGGABLE_FIELDS = taggables;
 
 
