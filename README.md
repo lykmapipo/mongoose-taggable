@@ -24,21 +24,16 @@ const UserSchema = new Schema({ name: { type: String, taggable: true } });
 UserSchema.plugin(taggable);
 const User = mongoose.model('User', UserSchema);
 
-const user = new User({ name: 'John Doe', tags: ['developer'] });
-
-// generate tags from taggable paths
-user.save((error, saved) => { ... });
-
-// tag instance direct
+const user = new User({ name: 'John Doe'});
+user.tag();
 user.tag('js', 'nodejs', 'express', 'mongoose');
 user.untag('angular');
-user.save((error, saved) => { ... });
 ```
 
 ## API
 
 ### `taggable(schema: Schema, [options: Object])`
-A taggable plugin. Once applied to a schema will allow to compute tag from `taggable` schema field and and `tag` and `untag` instance methods
+A taggable schema plugin. Once applied to a schema will allow to compute tags from `taggable` schema field and and `tag` and `untag` instance methods
 
 Example
 ```js
