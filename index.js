@@ -3,44 +3,48 @@
 
 /* dependencies */
 const _ = require('lodash');
+const traverse = require('traverse');
 const stopwords = require('stopwords-iso');
 const { eachPath, isObjectId, isMap } = require('@lykmapipo/mongoose-common');
-
 
 
 /**
  * @function words
  * @name words
- * @description extract words from a tag
- * @param {String} tag a tag to extract words from
- * @return {String[]} array of words from a tag
+ * @description extract words from a phrase
+ * @param {String} phrase a phrase to extract words from
+ * @return {String[]} array of words from a phrase
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
- * @since  0.1.0
+ * @since 0.1.0
  * @version 0.1.0
  * @private
+ * @example
+ * const _words = words('Hello World') // ['Hello', 'World'];
  */
-function words(tag) {
-  const _words = tag ? String(tag).match(/\w+/g) : undefined;
+function words(phrase) {
+  const _words = phrase ? String(phrase).match(/\w+/g) : [];
   return _words;
 }
 
 
 /**
- * @function removeStopWords
- * @name removeStopWords
- * @description remove stop words from tags
- * @param {String} tag a tag to extract words from
- * @return {String[]} array of words from a tag
+ * @function removeStopwords
+ * @name removeStopwords
+ * @description remove stop words from phrases using all languages stopwords
+ * @param {...String} phrases phrases to remove stopwords from
+ * @return {String[]} set of words from a phrases without stopwords
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
- * @since  0.1.0
+ * @since 0.1.0
  * @version 0.1.0
  * @private
+ * @example
+ * const keywords = removeStopwords('Mongo and Node') // ['Mongo', 'Node']
  */
-function removeStopWords(...str) {
-  const _str = [...str].join(' ');
-  const _words = words(_str);
+function removeStopwords(...phrases) {
+  const _phrases = [...phrases].join(' ');
+  const _words = words(_phrases);
   const _stopwords = _.flattenDeep(_.values(stopwords));
   const _keywords = _.difference(_words, _stopwords);
   return _keywords;
@@ -51,15 +55,18 @@ function removeStopWords(...str) {
  * @function normalizeTags
  * @name normalizeTags
  * @description clear, compact and lowercase tags
- * @param {...String} tags list of tags
- * @return {String[]} array of normalized tags
+ * @param {...String} tags set of tags
+ * @return {String[]} set of normalized tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
- * @since  0.1.0
+ * @since 0.1.0
  * @version 0.1.0
  * @private
+ * @example
+ * const tags = normalizeTags('Node and Mongo') // ['node', 'mongo']
  */
 function normalizeTags(...tags) {
+  // collect tags
   let _tags = [...tags];
   // remove falsey tags 
   _tags = _.compact(_tags);
@@ -67,11 +74,37 @@ function normalizeTags(...tags) {
   _tags = _.map(_tags, _.toLower);
   // convert tags to discrete words
   _tags = _.flattenDeep(_.map(_tags, words));
+  // remove stopwords
+  _tags = removeStopwords(..._tags);
   // ensure unique tags
   _tags = _.uniq(_tags);
-  // remove stopwords
-  _tags = removeStopWords(..._tags);
   // return normalized tags
+  return _tags;
+}
+
+
+/**
+ * @function tagFromMap
+ * @name tagFromMap
+ * @description derive tags from map schematype
+ * @param {MongooseMap} mapVal valid instance of MongooseMap
+ * @return {String[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
+function tagFromMap(mapVal) {
+  let _tags = [];
+  if (mapVal && isMap(mapVal)) {
+    const _mapVal = _.merge({}, mapVal.toJSON());
+    traverse(_mapVal).forEach(function tagMapVal(value) {
+      if (_.isString(value)) {
+        _tags = [..._tags].concat(value);
+      }
+    });
+  }
   return _tags;
 }
 
@@ -80,26 +113,27 @@ function normalizeTags(...tags) {
  * @function collectTaggables
  * @name collectTaggables
  * @description collect schema taggable fields
- * @param  {String} pathName path name
- * @param  {SchemaType} schemaType SchemaType of a path
+ * @param {String} pathName path name
+ * @param {SchemaType} schemaType SchemaType of a path
  * @return {Object} hash of all schema taggable paths
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
- * @since  0.1.0
+ * @since 0.1.0
  * @version 0.1.0
  * @private
+ * const taggables = collectTaggables(schema, 'tags');
  */
 function collectTaggables(schema, tagsPath) {
   // cache
   const taggables = {};
   eachPath(schema, function collectTaggablePath(pathName, schemaType) {
-    // check if path is taggale
+    // check if path is taggable
     const isTaggable = (schemaType.options && schemaType.options.taggable);
     if (isTaggable && pathName !== tagsPath) {
       // obtain taggable options
-      const taggableOptns = _.get(schemaType.options, 'taggable');
+      const optns = _.get(schemaType.options, 'taggable');
       // collect taggable schema path
-      taggables[pathName] = taggableOptns;
+      taggables[pathName] = _.isFunction(optns) ? optns : words;
     }
   });
   // return collect taggable schema paths
@@ -117,9 +151,13 @@ function collectTaggables(schema, tagsPath) {
  * @param {Boolean|String} [optns.index=true] whether to index tags.
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
- * @since  0.1.0
+ * @since 0.1.0
  * @version 0.1.0
  * @public
+ * @example
+ * const taggable = require('@lykmapipo/mongoose-taggable');
+ * const UserSchema = new Schema({ name: { type: String, taggable:true } });
+ * UserSchema.plugin(taggable);
  */
 function taggable(schema, optns) {
 
@@ -142,10 +180,10 @@ function taggable(schema, optns) {
    * @function tag
    * @name tag
    * @descriptions add tags to a model instance
-   * @param {...String} tags set of tags to add to model instance
+   * @param {...String} [tags] set of tags to add to model instance
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
-   * @since  0.1.0
+   * @since 0.1.0
    * @version 0.1.0
    * @instance
    * @example
@@ -163,9 +201,7 @@ function taggable(schema, optns) {
     _.forEach(taggables, function getTagFromField(extract, pathName) {
       // obtain tag from field
       let tag = _.get(instance, pathName);
-      if (isMap(tag)) {
-        _tags = [].concat(_tags).concat(_.values(tag.toJSON()));
-      }
+      _tags = [..._tags].concat(tagFromMap(tag));
       if (!isObjectId(tag)) {
         // TODO handle simple array and array of sub doc
         // extract tags from ref
@@ -193,7 +229,7 @@ function taggable(schema, optns) {
    * @param {...String} tags set of tags to remove from model instance
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
-   * @since  0.1.0
+   * @since 0.1.0
    * @version 0.1.0
    * @instance
    * @example
@@ -216,7 +252,7 @@ function taggable(schema, optns) {
    * @descriptions generate tags from taggable paths and set into tags path
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
-   * @since  0.1.0
+   * @since 0.1.0
    * @version 0.1.0
    * @private
    */
@@ -225,4 +261,5 @@ function taggable(schema, optns) {
 }
 
 
+/* exports taggable plugin */
 module.exports = exports = taggable;
