@@ -35,6 +35,34 @@ user.untag('angular');
 user.save((error, saved) => { ... });
 ```
 
+## API
+
+### `taggable(schema: Schema, [options: Object])`
+A taggable plugin. Once applied to a schema will allow to compute tag from `taggable` schema field and and `tag` and `untag` instance methods
+
+Example
+```js
+const UserSchema = new Schema({ name: { type: String, taggable: true } });
+UserSchema.plugin(taggable);
+const User = mongoose.model('User', UserSchema);
+```
+
+
+### `tag(...tag: String)`
+Tag a model instance with provided tags
+
+Example:
+```js
+user.tag('js', 'dev', 'conf');
+```
+
+### `untag(...tag: String)`
+Untag a model instance to not include provided tags
+
+Example:
+```js
+user.untag('conf');
+```
 
 ## Testing
 * Clone this repository
