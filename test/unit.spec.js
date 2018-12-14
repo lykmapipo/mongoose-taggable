@@ -78,6 +78,35 @@ describe('taggable', () => {
     expect(user.tags).to.include('nodejs');
   });
 
+  it('should be able to tag and remove stopwords', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('js and ninja', 'nodejs with express');
+    expect(user.tags).to.include('js');
+    expect(user.tags).to.not.include('and');
+    expect(user.tags).to.include('ninja');
+    expect(user.tags).to.include('nodejs');
+    expect(user.tags).to.not.include('with');
+    expect(user.tags).to.include('express');
+  });
+
+  it('should be able to tag and remove stopwords', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('js na ninja', 'nodejs na express');
+    expect(user.tags).to.include('js');
+    expect(user.tags).to.not.include('na');
+    expect(user.tags).to.include('ninja');
+    expect(user.tags).to.include('nodejs');
+    expect(user.tags).to.include('express');
+  });
+
   it('should be able to tag', () => {
     const schema = new Schema({ name: String });
     schema.plugin(taggable);
@@ -108,10 +137,10 @@ describe('taggable', () => {
     schema.plugin(taggable);
     const User = model(schema);
 
-    const user = new User({ name: 'John Doe' });
+    const user = new User({ name: 'John Boe' });
     user.tag();
     expect(user.tags).to.include('john');
-    expect(user.tags).to.include('doe');
+    expect(user.tags).to.include('boe');
   });
 
   it('should collect tags from taggable array paths', () => {
@@ -125,6 +154,23 @@ describe('taggable', () => {
     expect(user.tags).to.include('talking');
   });
 
+  it('should collect tags from taggable map paths', () => {
+    const schema = new Schema({
+      properties: {
+        type: Map,
+        of: String,
+        taggable: true
+      }
+    });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ properties: { 'given': 'John', 'surname': 'Boe' } });
+    user.tag();
+    expect(user.tags).to.include('john');
+    expect(user.tags).to.include('boe');
+  });
+
   it('should collect tags from taggable sub paths', () => {
     const schema = new Schema({
       name: {
@@ -135,10 +181,10 @@ describe('taggable', () => {
     schema.plugin(taggable);
     const User = model(schema);
 
-    const user = new User({ name: { given: 'John', surname: 'Doe' } });
+    const user = new User({ name: { given: 'John', surname: 'Boe' } });
     user.tag();
     expect(user.tags).to.include('john');
-    expect(user.tags).to.include('doe');
+    expect(user.tags).to.include('boe');
   });
 
   it('should collect tags from taggable subdoc paths', () => {
@@ -151,10 +197,10 @@ describe('taggable', () => {
     schema.plugin(taggable);
     const User = model(schema);
 
-    const user = new User({ name: { given: 'John', surname: 'Doe' } });
+    const user = new User({ name: { given: 'John', surname: 'Boe' } });
     user.tag();
     expect(user.tags).to.include('john');
-    expect(user.tags).to.include('doe');
+    expect(user.tags).to.include('boe');
   });
 
   it('should collect tags from taggable ref', () => {
@@ -173,11 +219,11 @@ describe('taggable', () => {
     PostSchema.plugin(taggable);
     const Post = model(PostSchema);
 
-    const author = new User({ name: 'John Doe' });
+    const author = new User({ name: 'John Boe' });
     const post = new Post({ title: 'JS Talks', author: author });
     post.tag();
     expect(post.tags).to.include('john');
-    expect(post.tags).to.include('doe');
+    expect(post.tags).to.include('boe');
     expect(post.tags).to.include('js');
     expect(post.tags).to.include('talks');
   });
@@ -198,11 +244,11 @@ describe('taggable', () => {
     PostSchema.plugin(taggable);
     const Post = model(PostSchema);
 
-    const author = new User({ name: 'John Doe' });
+    const author = new User({ name: 'John Boe' });
     const post = new Post({ title: 'JS Talks', author: author._id });
     post.tag();
     expect(post.tags).to.not.include('john');
-    expect(post.tags).to.not.include('doe');
+    expect(post.tags).to.not.include('boe');
     expect(post.tags).to.include('js');
     expect(post.tags).to.include('talks');
   });

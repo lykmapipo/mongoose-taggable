@@ -28,15 +28,13 @@
     "url": "https://github.com/lykmapipo/mongoose-taggable/issues"
   },
   "homepage": "https://github.com/lykmapipo/mongoose-taggable",
-  "contributors": [
-    {
-      "name": "lykmapipo",
-      "github": "https://github.com/lykmapipo"
-    }
-  ],
+  "contributors": [{
+    "name": "lykmapipo",
+    "github": "https://github.com/lykmapipo"
+  }],
   "devDependencies": {
     "@lykmapipo/include": "^0.1.0",
-    "@lykmapipo/mongoose-test-helpers": "^0.2.1",
+    "@lykmapipo/mongoose-test-helpers": "^0.2.2",
     "async": "^2.6.1",
     "chai": "^4.2.0",
     "grunt": "^1.0.3",
@@ -54,6 +52,8 @@
     "mongoose": ">=5.3.16"
   },
   "dependencies": {
-    "@lykmapipo/mongoose-common": ">=0.2.0"
+    "@lykmapipo/mongoose-common": ">=0.3.0",
+    "stopwords-iso": ">=0.4.0",
+    "traverse": ">=0.6.6"
   }
 }

@@ -3,7 +3,8 @@
 
 /* dependencies */
 const _ = require('lodash');
-const { eachPath, isObjectId } = require('@lykmapipo/mongoose-common');
+const stopwords = require('stopwords-iso');
+const { eachPath, isObjectId, isMap } = require('@lykmapipo/mongoose-common');
 
 
 
@@ -22,6 +23,27 @@ const { eachPath, isObjectId } = require('@lykmapipo/mongoose-common');
 function words(tag) {
   const _words = tag ? String(tag).match(/\w+/g) : undefined;
   return _words;
+}
+
+
+/**
+ * @function removeStopWords
+ * @name removeStopWords
+ * @description remove stop words from tags
+ * @param {String} tag a tag to extract words from
+ * @return {String[]} array of words from a tag
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ */
+function removeStopWords(...str) {
+  const _str = [...str].join(' ');
+  const _words = words(_str);
+  const _stopwords = _.flattenDeep(_.values(stopwords));
+  const _keywords = _.difference(_words, _stopwords);
+  return _keywords;
 }
 
 
@@ -47,6 +69,8 @@ function normalizeTags(...tags) {
   _tags = _.flattenDeep(_.map(_tags, words));
   // ensure unique tags
   _tags = _.uniq(_tags);
+  // remove stopwords
+  _tags = removeStopWords(..._tags);
   // return normalized tags
   return _tags;
 }
@@ -139,6 +163,9 @@ function taggable(schema, optns) {
     _.forEach(taggables, function getTagFromField(extract, pathName) {
       // obtain tag from field
       let tag = _.get(instance, pathName);
+      if (isMap(tag)) {
+        _tags = [].concat(_tags).concat(_.values(tag.toJSON()));
+      }
       if (!isObjectId(tag)) {
         // TODO handle simple array and array of sub doc
         // extract tags from ref
