@@ -5,7 +5,12 @@
 const _ = require('lodash');
 const traverse = require('traverse');
 const stopwords = require('stopwords-iso');
-const { eachPath, isObjectId, isMap } = require('@lykmapipo/mongoose-common');
+const {
+  eachPath,
+  isObjectId,
+  isMap,
+  isInstance
+} = require('@lykmapipo/mongoose-common');
 
 
 /**
@@ -100,9 +105,13 @@ function normalizeTags(...tags) {
  */
 function tagFromAnyField(value, extract) {
   let _tags = [];
-  let _value = _.clone(value);
-  _value = _.isFunction(extract) ? extract(_value) : _value;
-  _tags = [..._tags].concat(_value);
+  const isValidField =
+    (!isObjectId(value) && !isInstance(value) && !isMap(value));
+  if (isValidField) {
+    let _value = _.clone(value);
+    _value = _.isFunction(extract) ? extract(_value) : _value;
+    _tags = [..._tags].concat(_value);
+  }
   return _tags;
 }
 
