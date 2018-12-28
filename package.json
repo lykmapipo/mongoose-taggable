@@ -1,6 +1,6 @@
 {
   "name": "@lykmapipo/mongoose-taggable",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "mongoose plugin to add tags and taggable behaviour",
   "keywords": [
     "mongoose",
@@ -9,7 +9,8 @@
     "tag",
     "keyword",
     "taggable",
-    "stopwords"
+    "stopwords",
+    "blacklist"
   ],
   "main": "index.js",
   "scripts": {
@@ -29,12 +30,10 @@
     "url": "https://github.com/lykmapipo/mongoose-taggable/issues"
   },
   "homepage": "https://github.com/lykmapipo/mongoose-taggable",
-  "contributors": [
-    {
-      "name": "lykmapipo",
-      "github": "https://github.com/lykmapipo"
-    }
-  ],
+  "contributors": [{
+    "name": "lykmapipo",
+    "github": "https://github.com/lykmapipo"
+  }],
   "devDependencies": {
     "@lykmapipo/include": ">=0.1.0",
     "@lykmapipo/mongoose-test-helpers": ">=0.2.3",

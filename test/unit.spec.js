@@ -253,4 +253,17 @@ describe('taggable', () => {
     expect(post.tags).to.include('talks');
   });
 
+  it('should be able to tag without blacklist', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable, { blacklist: ['js'] });
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('JS', 'NODEJS');
+    expect(user.tags).to.have.length(1);
+    expect(user.tags).to.not.include('js');
+    expect(user.tags).to.not.include('JS');
+    expect(user.tags).to.include('nodejs');
+    expect(user.tags).to.not.include('NODEJS');
+  });
 });

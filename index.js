@@ -79,12 +79,32 @@ function normalizeTags(...tags) {
   _tags = _.map(_tags, _.toLower);
   // convert tags to discrete words
   _tags = _.flattenDeep(_.map(_tags, words));
-  // remove stopwords
-  _tags = removeStopwords(..._tags);
   // ensure unique tags
   _tags = _.uniq(_tags);
   // return normalized tags
   return _tags;
+}
+
+/**
+ * @function removeBlacklist
+ * @name removeBlacklist
+ * @description remove blacklist words from a phrase
+ * @param {String|String[]} phrase valid phrase
+ * @param {...String} blacklist words to remove from a phrase
+ * @return {String[]} set of words from a phrase without blacklist words
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.2.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * const keywords = removeBlacklist('Mongo and Node', 'Node') // ['Mongo']
+ */
+function removeBlacklist(phrase, ...blacklist) {
+  let _blacklist = normalizeTags(...blacklist);
+  const _phrase = normalizeTags(phrase);
+  const _whitelist = _.difference(_phrase, _blacklist);
+  return _whitelist;
 }
 
 
@@ -266,8 +286,10 @@ function collectTaggables(schema, tagsPath) {
 function taggable(schema, optns) {
 
   // ensure options
-  const defaults = ({ path: 'tags', searchable: true, index: true });
+  const defaults =
+    ({ blacklist: [], path: 'tags', searchable: true, index: true });
   const options = _.merge({}, defaults, optns);
+  const blacklist = _.compact([...options.blacklist]);
 
   // add tag schema paths
   const { path, index, searchable } = options;
@@ -303,8 +325,10 @@ function taggable(schema, optns) {
     _tags = [..._tags, ...tags];
     // collect tags from taggable fields
     _tags = [..._tags, ...tagFromFields(instance, taggables)];
-    // normalize tags
-    _tags = normalizeTags(..._tags);
+    // remove blacklist
+    _tags = removeBlacklist(_tags, ...blacklist);
+    // remove stopwords
+    _tags = removeStopwords(..._tags);
     // set and update tags
     this[path] = _tags;
   };
