@@ -5,6 +5,7 @@
 const _ = require('lodash');
 const traverse = require('traverse');
 const stopwords = require('stopwords-iso');
+const { getStrings } = require('@lykmapipo/env');
 const {
   eachPath,
   isObjectId,
@@ -286,10 +287,11 @@ function collectTaggables(schema, tagsPath) {
 function taggable(schema, optns) {
 
   // ensure options
+  const BLACKLIST = getStrings('TAGGABLE_BLACKLIST');
   const defaults =
     ({ blacklist: [], path: 'tags', searchable: true, index: true });
   const options = _.merge({}, defaults, optns);
-  const blacklist = _.compact([...options.blacklist]);
+  const blacklist = [...BLACKLIST, ...options.blacklist];
 
   // add tag schema paths
   const { path, index, searchable } = options;
