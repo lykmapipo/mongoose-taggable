@@ -35,10 +35,17 @@ user.untag('angular');
 ### `taggable(schema: Schema, [options: Object])`
 A taggable schema plugin. Once applied to a schema will allow to compute tags from `taggable` schema field and and `tag` and `untag` instance methods
 
+#### `options: Object`
+- `blacklist: String | String[]` - List of word(s) not allowed to be used for tagging.
+
 Example
 ```js
 const UserSchema = new Schema({ name: { type: String, taggable: true } });
 UserSchema.plugin(taggable);
+const User = mongoose.model('User', UserSchema);
+
+const UserSchema = new Schema({ name: { type: String, taggable: true } });
+UserSchema.plugin(taggable, { blacklist: ['unknown'] });
 const User = mongoose.model('User', UserSchema);
 ```
 
