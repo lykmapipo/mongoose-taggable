@@ -4,8 +4,9 @@
 /* dependencies */
 const _ = require('lodash');
 const traverse = require('traverse');
+const moment = require('moment');
 const stopwords = require('stopwords-iso');
-const { getStrings } = require('@lykmapipo/env');
+const { getString, getStrings } = require('@lykmapipo/env');
 const {
   eachPath,
   isObjectId,
@@ -124,7 +125,7 @@ function removeBlacklist(phrase, ...blacklist) {
  * @function tagFromAnyField
  * @name tagFromAnyField
  * @description derive tags from other schematype
- * @param {String|Number|Date} val valid value
+ * @param {String|Number|Array} val valid value
  * @param {Function} [extract] field tag extractor
  * @return {String[]} set of tags
  * @author lally elias <lallyelias87@mail.com>
@@ -138,9 +139,39 @@ function removeBlacklist(phrase, ...blacklist) {
 function tagFromAnyField(value, extract) {
   let _tags = [];
   const isValidField =
-    (!isObjectId(value) && !isInstance(value) && !isMap(value));
+    (value && (_.isString(value) || _.isNumber(value) || _.isArray(value)));
   if (isValidField) {
     let _value = _.clone(value);
+    _value = _.isFunction(extract) ? extract(_value) : _value;
+    _tags = [..._tags].concat(_value);
+  }
+  return _tags;
+}
+
+
+/**
+ * @function tagFromDateField
+ * @name tagFromDateField
+ * @description derive tags from date schematype
+ * @param {String|Number} val valid date value
+ * @param {Function} [extract] field tag extractor
+ * @return {String[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.3.0
+ * @version 0.1.0
+ * @private
+ * const tags = tagFromDateField('2019-01-01'); 
+ * //=> ['2019', 'January', 'Tuesday']
+ * const tags = tagFromDateField('2019-01-01', <extractor>); 
+ * //=> ['2019', 'January', 'Tuesday']
+ */
+function tagFromDateField(value, extract) {
+  let _tags = [];
+  const DATE_FORMAT = getString('TAGGABLE_DATE_FORMAT', 'dddd MMMM YYYY');
+  const isValidField = (value && _.isDate(value));
+  if (isValidField) {
+    let _value = moment(value).clone().format(DATE_FORMAT);
     _value = _.isFunction(extract) ? extract(_value) : _value;
     _tags = [..._tags].concat(_value);
   }
@@ -197,7 +228,7 @@ function tagFromMapField(mapVal, extract) {
  */
 function tagFromInstanceField(instance, extract) {
   let _tags = [];
-  if (instance && _.isFunction(instance.tag)) {
+  if (instance && isInstance(instance) && _.isFunction(instance.tag)) {
     instance.tag();
     let _value = [].concat(instance.tags);
     _value = _.isFunction(extract) ? extract(_value) : _value;
@@ -234,6 +265,8 @@ function tagFromFields(instance, taggables) {
     _tags = [..._tags, ...tagFromMapField(value, extract)];
     // tag from model instance
     _tags = [..._tags, ...tagFromInstanceField(value, extract)];
+    // tag from date field
+    _tags = [..._tags, ...tagFromDateField(value, extract)];
     // tag from primitive field
     _tags = [..._tags, ...tagFromAnyField(value, extract)];
     // TODO handle array of subdoc

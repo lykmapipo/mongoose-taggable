@@ -297,4 +297,17 @@ describe('taggable', () => {
     expect(user.toObject()).to.not.have.a.key('tags');
     expect(user.toJSON()).to.not.have.a.key('tags');
   });
+
+  it('should generate tags from date fields', () => {
+    const schema = new Schema({ dob: { type: Date, taggable: true } });
+    schema.plugin(taggable);
+    const User = model(schema);
+
+    const user = new User({ dob: new Date('2000-01-01') });
+    user.tag();
+    expect(user.tags).to.not.be.empty;
+    expect(user.tags).to.include('2000');
+    expect(user.tags).to.include('january');
+    expect(user.tags).to.include('saturday');
+  });
 });

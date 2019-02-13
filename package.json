@@ -54,9 +54,10 @@
   },
   "dependencies": {
     "@lykmapipo/env": ">=0.5.0",
-    "@lykmapipo/mongoose-common": ">=0.9.1",
+    "@lykmapipo/mongoose-common": ">=0.9.2",
     "async": ">=2.6.2",
     "lodash": ">=4.17.11",
+    "moment": "^2.24.0",
     "stopwords-iso": ">=0.4.0",
     "traverse": ">=0.6.6"
   }
