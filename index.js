@@ -14,6 +14,17 @@ const {
 } = require('@lykmapipo/mongoose-common');
 
 
+/* constants */
+const defaultTaggableOptions = ({
+  path: 'tags',
+  blacklist: [],
+  index: true,
+  duplicate: false,
+  searchable: true,
+  hide: true
+});
+
+
 /**
  * @function words
  * @name words
@@ -273,7 +284,10 @@ function collectTaggables(schema, tagsPath) {
  * @param {Schema} schema valid mongoose schema
  * @param {Object} [optns] plugin options
  * @param {String} [optns.path=tags] schema path where tags will be stored.
+ * @param {String} [optns.blacklist=[]] list of words to remove from tags.
  * @param {Boolean|String} [optns.index=true] whether to index tags.
+ * @param {Boolean} [optns.searchable=true] whether to allow search on tags.
+ * @param {Boolean} [optns.hide=true] whether to hide tags on toJSON.
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
@@ -285,18 +299,16 @@ function collectTaggables(schema, tagsPath) {
  * UserSchema.plugin(taggable);
  */
 function taggable(schema, optns) {
-
   // ensure options
-  const BLACKLIST = getStrings('TAGGABLE_BLACKLIST');
-  const defaults =
-    ({ blacklist: [], path: 'tags', searchable: true, index: true });
-  const options = _.merge({}, defaults, optns);
+  const BLACKLIST = getStrings('TAGGABLE_BLACKLIST', []);
+  const options = _.merge({}, defaultTaggableOptions, optns);
   const blacklist = [...BLACKLIST, ...options.blacklist];
 
-  // add tag schema paths
-  const { path, index, searchable } = options;
+  // add tags schema paths
+  const { path, index, duplicate, searchable, hide } = options;
+  const type = [String];
   schema.add({
-    [path]: { type: [String], index, searchable, default: undefined }
+    [path]: { type, index, duplicate, searchable, hide, default: undefined }
   });
 
   // collect taggable schema paths

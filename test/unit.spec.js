@@ -6,6 +6,7 @@ const { Schema, SchemaTypes } = require('@lykmapipo/mongoose-common');
 const { model } = require('@lykmapipo/mongoose-test-helpers');
 const { include } = require('@lykmapipo/include');
 const { expect } = require('chai');
+const hidden = require('mongoose-hidden')();
 const taggable = include(__dirname, '..');
 
 
@@ -20,8 +21,10 @@ describe('taggable', () => {
     expect(tags).to.exist;
     expect(tags).to.be.instanceof(SchemaTypes.Array);
     expect(tags.options).to.exist;
+    expect(tags.options.duplicate).to.be.false;
     expect(tags.options.searchable).to.be.true;
     expect(tags.options.index).to.be.true;
+    expect(tags.options.hide).to.be.true;
   });
 
   it('should add tags path on schema with options', () => {
@@ -280,5 +283,18 @@ describe('taggable', () => {
     expect(user.tags).to.not.include('JS');
     expect(user.tags).to.include('nodejs');
     expect(user.tags).to.not.include('NODEJS');
+  });
+
+  it('should hide tags by default', () => {
+    const schema = new Schema({ name: String });
+    schema.plugin(taggable);
+    schema.plugin(hidden);
+    const User = model(schema);
+
+    const user = new User();
+    user.tag('JS', 'NODEJS');
+
+    expect(user.toObject()).to.not.have.a.key('tags');
+    expect(user.toJSON()).to.not.have.a.key('tags');
   });
 });

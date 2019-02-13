@@ -46,15 +46,16 @@
     "grunt-mocha-test": "^0.13.3",
     "jshint-stylish": "^2.2.1",
     "mocha": "^5.2.0",
-    "mongoose": ">=5.4.1"
+    "mongoose": ">=5.4.11",
+    "mongoose-hidden": "^1.6.0"
   },
   "peerDependencies": {
-    "mongoose": ">=5.4.1"
+    "mongoose": ">=5.4.11"
   },
   "dependencies": {
-    "@lykmapipo/env": ">=0.3.3",
-    "@lykmapipo/mongoose-common": ">=0.5.0",
-    "async": ">=2.6.1",
+    "@lykmapipo/env": ">=0.5.0",
+    "@lykmapipo/mongoose-common": ">=0.9.1",
+    "async": ">=2.6.2",
     "lodash": ">=4.17.11",
     "stopwords-iso": ">=0.4.0",
     "traverse": ">=0.6.6"
