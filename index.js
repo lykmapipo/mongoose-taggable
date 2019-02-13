@@ -131,7 +131,7 @@ function removeBlacklist(phrase, ...blacklist) {
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
- * @version 0.1.0
+ * @version 0.2.0
  * @private
  * const tags = tagFromAnyField(<val>); // ['js', 'node']
  * const tags = tagFromAnyField(<val>, <extractor>); // ['js', 'node']
@@ -247,7 +247,7 @@ function tagFromInstanceField(instance, extract) {
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
- * @version 0.1.0
+ * @version 0.2.0
  * @private
  * @example
  * const tags = tagFromFields(user, taggables, 'tags'); // ['js', 'node']
@@ -324,7 +324,7 @@ function collectTaggables(schema, tagsPath) {
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
- * @version 0.1.0
+ * @version 0.2.0
  * @public
  * @example
  * const taggable = require('@lykmapipo/mongoose-taggable');
