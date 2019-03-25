@@ -23,7 +23,8 @@ const defaultTaggableOptions = ({
   duplicate: false,
   searchable: true,
   hide: true,
-  fresh: false
+  fresh: false,
+  hook: 'validate'
 });
 
 
@@ -320,6 +321,7 @@ function collectTaggables(schema, tagsPath) {
  * @param {String} [optns.path=tags] schema path where tags will be stored.
  * @param {String} [optns.blacklist=[]] list of words to remove from tags.
  * @param {String} [optns.fresh=false] whether to recompute fresh tags.
+ * @param {String} [optns.hook=validate] when to run tagging hook.
  * @param {Boolean|String} [optns.index=true] whether to index tags.
  * @param {Boolean} [optns.searchable=true] whether to allow search on tags.
  * @param {Boolean} [optns.hide=true] whether to hide tags on toJSON.
@@ -340,7 +342,7 @@ function taggable(schema, optns) {
   const blacklist = [...BLACKLIST, ...options.blacklist];
 
   // add tags schema paths
-  const { path, index, duplicate, searchable, hide, fresh } = options;
+  const { path, index, duplicate, searchable, hide, fresh, hook } = options;
   const type = [String];
   schema.add({
     [path]: { type, index, duplicate, searchable, hide, default: undefined }
@@ -417,7 +419,7 @@ function taggable(schema, optns) {
    * @version 0.1.0
    * @private
    */
-  schema.pre('validate', function preValidate() { this.tag(); });
+  schema.pre(hook, function preValidate() { this.tag(); });
 
 }
 
