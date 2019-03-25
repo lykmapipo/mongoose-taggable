@@ -37,6 +37,7 @@ A taggable schema plugin. Once applied to a schema will allow to compute tags fr
 
 #### `options: Object`
 - `blacklist: String | String[]` - List of word(s) not allowed to be used for tagging.
+- `fresh: Boolean` - Whether to recompute fresh tags. Default to `false`.
 
 Example
 ```js

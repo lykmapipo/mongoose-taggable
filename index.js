@@ -22,7 +22,8 @@ const defaultTaggableOptions = ({
   index: true,
   duplicate: false,
   searchable: true,
-  hide: true
+  hide: true,
+  fresh: false
 });
 
 
@@ -318,6 +319,7 @@ function collectTaggables(schema, tagsPath) {
  * @param {Object} [optns] plugin options
  * @param {String} [optns.path=tags] schema path where tags will be stored.
  * @param {String} [optns.blacklist=[]] list of words to remove from tags.
+ * @param {String} [optns.fresh=false] whether to recompute fresh tags.
  * @param {Boolean|String} [optns.index=true] whether to index tags.
  * @param {Boolean} [optns.searchable=true] whether to allow search on tags.
  * @param {Boolean} [optns.hide=true] whether to hide tags on toJSON.
@@ -338,7 +340,7 @@ function taggable(schema, optns) {
   const blacklist = [...BLACKLIST, ...options.blacklist];
 
   // add tags schema paths
-  const { path, index, duplicate, searchable, hide } = options;
+  const { path, index, duplicate, searchable, hide, fresh } = options;
   const type = [String];
   schema.add({
     [path]: { type, index, duplicate, searchable, hide, default: undefined }
@@ -367,7 +369,7 @@ function taggable(schema, optns) {
     // reference
     const instance = this;
     // obtain existing tags
-    let _tags = this[path] ? [...this[path]] : [];
+    let _tags = fresh ? [] : (this[path] ? [...this[path]] : []);
     // merge provided tags
     _tags = [..._tags, ...tags];
     // collect tags from taggable fields
