@@ -1,3 +1,13 @@
+#### 0.4.1 (2019-04-16)
+
+##### Chores
+
+*  force latest dependencies ([e2342918](https://github.com/lykmapipo/mongoose-taggable/commit/e2342918810576eef815a0910be9d8adcbeb1c89))
+
+##### Documentation Changes
+
+*  add code of conduct & contributing guide ([6f715b25](https://github.com/lykmapipo/mongoose-taggable/commit/6f715b250510e3a49683642f30c11d3be067fda5))
+
 #### 0.4.0 (2019-03-25)
 
 ##### Chores
