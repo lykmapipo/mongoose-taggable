@@ -1,3 +1,11 @@
+#### 0.4.2 (2019-05-01)
+
+##### Chores
+
+* **ci:**  force latest nodejs ([3a3600b2](https://github.com/lykmapipo/mongoose-taggable/commit/3a3600b279da6600716b8d478aaacd17de519703))
+* **.npmrc:**  prevent npm version to commit and tag version ([ab4cf03d](https://github.com/lykmapipo/mongoose-taggable/commit/ab4cf03d218ee62f296cc72d9497fefdc3a070e0))
+* **deps:**  force latest version & audit fix ([3452112f](https://github.com/lykmapipo/mongoose-taggable/commit/3452112f961379c55455cad43b489cac61d132e8))
+
 #### 0.4.1 (2019-04-16)
 
 ##### Chores
