@@ -1,3 +1,13 @@
+#### 0.4.3 (2019-05-12)
+
+##### Chores
+
+* **deps:**  force latest version & audit fix ([76c3650f](https://github.com/lykmapipo/mongoose-taggable/commit/76c3650f6a687529e41ac4f3610aca01f2fdd5b3))
+
+##### Bug Fixes
+
+*  make tags not exportables ([bbfe17a6](https://github.com/lykmapipo/mongoose-taggable/commit/bbfe17a60e70eec931b3588ca41c5b11c00ed3b1))
+
 #### 0.4.2 (2019-05-01)
 
 ##### Chores
