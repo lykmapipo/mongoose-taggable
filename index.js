@@ -22,6 +22,7 @@ const defaultTaggableOptions = ({
   index: true,
   duplicate: false,
   searchable: true,
+  exportable: false,
   hide: true,
   fresh: false,
   hook: 'validate'
@@ -342,10 +343,27 @@ function taggable(schema, optns) {
   const blacklist = [...BLACKLIST, ...options.blacklist];
 
   // add tags schema paths
-  const { path, index, duplicate, searchable, hide, fresh, hook } = options;
+  const {
+    path,
+    index,
+    duplicate,
+    searchable,
+    exportable,
+    hide,
+    fresh,
+    hook
+  } = options;
   const type = [String];
   schema.add({
-    [path]: { type, index, duplicate, searchable, hide, default: undefined }
+    [path]: {
+      type,
+      index,
+      duplicate,
+      searchable,
+      exportable,
+      hide,
+      default: undefined
+    }
   });
 
   // collect taggable schema paths
