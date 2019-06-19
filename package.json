@@ -1,6 +1,6 @@
 {
   "name": "@lykmapipo/mongoose-taggable",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "mongoose plugin to add tags and taggable behaviour",
   "keywords": [
     "mongoose",
@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@lykmapipo/env": ">=0.9.1",
-    "@lykmapipo/mongoose-common": ">=0.25.4",
+    "@lykmapipo/mongoose-common": ">=0.25.6",
     "async": ">=3.0.1",
     "lodash": ">=4.17.11",
     "moment": ">=2.24.0",
