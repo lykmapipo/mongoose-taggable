@@ -37,14 +37,14 @@
     }
   ],
   "devDependencies": {
-    "@lykmapipo/include": ">=0.2.8",
-    "@lykmapipo/mongoose-test-helpers": ">=0.7.19",
+    "@lykmapipo/include": ">=0.2.9",
+    "@lykmapipo/mongoose-test-helpers": ">=0.7.20",
     "chai": "^4.2.0",
     "grunt": "^1.0.4",
     "grunt-contrib-jshint": "^2.1.0",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-mocha-test": "^0.13.3",
-    "handlebars": "^4.2.0",
+    "handlebars": "^4.3.1",
     "jshint-stylish": "^2.2.1",
     "mocha": "^6.2.0",
     "mongoose": ">=5.7.1",
@@ -55,8 +55,8 @@
     "mongoose": ">=5.7.1"
   },
   "dependencies": {
-    "@lykmapipo/env": ">=0.13.2",
-    "@lykmapipo/mongoose-common": ">=0.25.12",
+    "@lykmapipo/env": ">=0.14.1",
+    "@lykmapipo/mongoose-common": ">=0.25.14",
     "async": ">=3.1.0",
     "lodash": ">=4.17.15",
     "moment": ">=2.24.0",
