@@ -1,3 +1,9 @@
+#### 0.4.17 (2020-01-14)
+
+##### Chores
+
+* **deps:**  force latest version & audit fix ([dd823034](https://github.com/lykmapipo/mongoose-taggable/commit/dd8230340c92b8eb13648967309142ce2a637713))
+
 #### 0.4.16 (2020-01-12)
 
 ##### Chores
