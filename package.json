@@ -1,6 +1,6 @@
 {
   "name": "@lykmapipo/mongoose-taggable",
-  "version": "0.4.34",
+  "version": "0.4.35",
   "description": "mongoose plugin to add tags and taggable behaviour",
   "keywords": [
     "mongoose",
