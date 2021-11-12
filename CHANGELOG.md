@@ -1,3 +1,17 @@
+#### 0.5.0 (2021-11-12)
+
+##### Chores
+
+* **release:**  compile latest source ([676b888a](https://github.com/lykmapipo/mongoose-taggable/commit/676b888a76100c5b6817190156b949f6e2c3d163))
+* **deps:**
+  *  bump bl from 2.2.0 to 2.2.1 ([c5acf9b2](https://github.com/lykmapipo/mongoose-taggable/commit/c5acf9b2d8664e66fe1e90ba99e1ba931098f1af))
+  *  bump ini from 1.3.5 to 1.3.7 ([9d93a9a4](https://github.com/lykmapipo/mongoose-taggable/commit/9d93a9a40643c5d8b9a509b334de84e6ea414f6d))
+  *  bump websocket-extensions from 0.1.3 to 0.1.4 ([857aee94](https://github.com/lykmapipo/mongoose-taggable/commit/857aee949d4fea75e09ed00e50e3d1994bafe503))
+
+##### Refactors
+
+*  migrate to es6 ([e775f433](https://github.com/lykmapipo/mongoose-taggable/commit/e775f433b7ec5e653dd81ddb587da9ea88971b6b))
+
 #### 0.4.35 (2020-08-08)
 
 ##### Chores
