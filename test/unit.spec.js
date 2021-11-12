@@ -1,17 +1,9 @@
-'use strict';
-
-
-/* dependencies */
-const { Schema, SchemaTypes } = require('@lykmapipo/mongoose-common');
-const { model } = require('@lykmapipo/mongoose-test-helpers');
-const { include } = require('@lykmapipo/include');
-const { expect } = require('chai');
-const hidden = require('mongoose-hidden')();
-const taggable = include(__dirname, '..');
-
+import { Schema, SchemaTypes } from '@lykmapipo/mongoose-common';
+import { model, expect } from '@lykmapipo/mongoose-test-helpers';
+import mongooseHidden from 'mongoose-hidden';
+import taggable from '../src';
 
 describe('taggable', () => {
-
   it('should add tags path on schema', () => {
     const schema = new Schema({ name: String });
     schema.plugin(taggable);
@@ -147,7 +139,9 @@ describe('taggable', () => {
   });
 
   it('should collect tags from taggable array paths', () => {
-    const schema = new Schema({ interests: { type: [String], taggable: true } });
+    const schema = new Schema({
+      interests: { type: [String], taggable: true },
+    });
     schema.plugin(taggable);
     const User = model(schema);
 
@@ -162,13 +156,13 @@ describe('taggable', () => {
       properties: {
         type: Map,
         of: String,
-        taggable: true
-      }
+        taggable: true,
+      },
     });
     schema.plugin(taggable);
     const User = model(schema);
 
-    const user = new User({ properties: { 'given': 'John', 'surname': 'Boe' } });
+    const user = new User({ properties: { given: 'John', surname: 'Boe' } });
     user.tag();
     expect(user.tags).to.include('john');
     expect(user.tags).to.include('boe');
@@ -178,8 +172,8 @@ describe('taggable', () => {
     const schema = new Schema({
       name: {
         given: { type: String, taggable: true },
-        surname: { type: String, taggable: true }
-      }
+        surname: { type: String, taggable: true },
+      },
     });
     schema.plugin(taggable);
     const User = model(schema);
@@ -194,8 +188,8 @@ describe('taggable', () => {
     const schema = new Schema({
       name: new Schema({
         given: { type: String, taggable: true },
-        surname: { type: String, taggable: true }
-      })
+        surname: { type: String, taggable: true },
+      }),
     });
     schema.plugin(taggable);
     const User = model(schema);
@@ -216,14 +210,14 @@ describe('taggable', () => {
       author: {
         type: SchemaTypes.ObjectId,
         ref: User.modelName,
-        taggable: true
-      }
+        taggable: true,
+      },
     });
     PostSchema.plugin(taggable);
     const Post = model(PostSchema);
 
     const author = new User({ name: 'John Boe' });
-    const post = new Post({ title: 'JS Talks', author: author });
+    const post = new Post({ title: 'JS Talks', author });
     post.tag();
     expect(post.tags).to.include('john');
     expect(post.tags).to.include('boe');
@@ -241,8 +235,8 @@ describe('taggable', () => {
       author: {
         type: SchemaTypes.ObjectId,
         ref: User.modelName,
-        taggable: true
-      }
+        taggable: true,
+      },
     });
     PostSchema.plugin(taggable);
     const Post = model(PostSchema);
@@ -288,7 +282,7 @@ describe('taggable', () => {
   it('should hide tags by default', () => {
     const schema = new Schema({ name: String });
     schema.plugin(taggable);
-    schema.plugin(hidden);
+    schema.plugin(mongooseHidden());
     const User = model(schema);
 
     const user = new User();

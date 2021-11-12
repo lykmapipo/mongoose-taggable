@@ -1,22 +1,17 @@
-'use strict';
-
-
-/* dependencies */
-const _ = require('lodash');
-const traverse = require('traverse');
-const moment = require('moment');
-const stopwords = require('stopwords-iso');
-const { getString, getStrings } = require('@lykmapipo/env');
-const {
+import _ from 'lodash';
+import traverse from 'traverse';
+import moment from 'moment';
+import stopwords from 'stopwords-iso';
+import { getString, getStrings } from '@lykmapipo/env';
+import {
   eachPath,
   isObjectId,
   isMap,
-  isInstance
-} = require('@lykmapipo/mongoose-common');
-
+  isInstance,
+} from '@lykmapipo/mongoose-common';
 
 /* constants */
-const defaultTaggableOptions = ({
+const defaultTaggableOptions = {
   path: 'tags',
   blacklist: [],
   index: true,
@@ -25,273 +20,288 @@ const defaultTaggableOptions = ({
   exportable: false,
   hide: true,
   fresh: false,
-  hook: 'validate'
-});
-
+  hook: 'validate',
+};
 
 /**
  * @function words
  * @name words
  * @description extract words from a phrase
- * @param {String} phrase a phrase to extract words from
- * @return {String[]} array of words from a phrase
+ * @param {string} phrase a phrase to extract words from
+ * @returns {string[]} array of words from a phrase
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
  * @private
  * @example
- * const _words = words('Hello World') // ['Hello', 'World'];
+ * words('Hello World')
+ * //=> ['Hello', 'World'];
  */
 function words(phrase) {
-  const _words = phrase ? String(phrase).match(/\w+/g) : [];
-  return _words;
+  const $words = phrase ? String(phrase).match(/\w+/g) : [];
+  return $words;
 }
-
 
 /**
  * @function removeStopwords
  * @name removeStopwords
  * @description remove stop words from phrases using all languages stopwords
- * @param {...String} phrases phrases to remove stopwords from
- * @return {String[]} set of words from a phrases without stopwords
+ * @param {...string} phrases phrases to remove stopwords from
+ * @returns {string[]} set of words from a phrases without stopwords
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
  * @private
  * @example
- * const keywords = removeStopwords('Mongo and Node') // ['Mongo', 'Node']
+ * removeStopwords('Mongo and Node')
+ * //=> ['Mongo', 'Node']
  */
 function removeStopwords(...phrases) {
-  const _phrases = [...phrases].join(' ');
-  const _words = words(_phrases);
-  const _stopwords = _.flattenDeep(_.values(stopwords));
-  const _keywords = _.difference(_words, _stopwords);
-  return _keywords;
+  const $phrases = [...phrases].join(' ');
+  const $words = words($phrases);
+  const $stopwords = _.flattenDeep(_.values(stopwords));
+  const $keywords = _.difference($words, $stopwords);
+  return $keywords;
 }
-
 
 /**
  * @function normalizeTags
  * @name normalizeTags
  * @description clear, compact and lowercase tags
- * @param {...String} tags set of tags
- * @return {String[]} set of normalized tags
+ * @param {...string} tags set of tags
+ * @returns {string[]} set of normalized tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
  * @private
  * @example
- * const tags = normalizeTags('Node and Mongo') // ['node', 'mongo']
+ * normalizeTags('Node and Mongo')
+ * //=> ['node', 'mongo']
  */
 function normalizeTags(...tags) {
   // collect tags
-  let _tags = [...tags];
-  // remove falsey tags 
-  _tags = _.compact(_tags);
+  let $tags = [...tags];
+  // remove falsey tags
+  $tags = _.compact($tags);
   // convert tags to lowercase
-  _tags = _.map(_tags, _.toLower);
+  $tags = _.map($tags, _.toLower);
   // convert tags to discrete words
-  _tags = _.flattenDeep(_.map(_tags, words));
+  $tags = _.flattenDeep(_.map($tags, words));
   // ensure unique tags
-  _tags = _.uniq(_tags);
+  $tags = _.uniq($tags);
   // return normalized tags
-  return _tags;
+  return $tags;
 }
 
 /**
  * @function removeBlacklist
  * @name removeBlacklist
  * @description remove blacklist words from a phrase
- * @param {String|String[]} phrase valid phrase
- * @param {...String} blacklist words to remove from a phrase
- * @return {String[]} set of words from a phrase without blacklist words
+ * @param {string | string[]} phrase valid phrase
+ * @param {...string} blacklist words to remove from a phrase
+ * @returns {string[]} set of words from a phrase without blacklist words
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.2.0
  * @version 0.1.0
  * @private
  * @example
- * const keywords = removeBlacklist('Mongo and Node', 'Node') // ['Mongo']
+ * removeBlacklist('Mongo and Node', 'Node')
+ * //=> ['Mongo']
  */
 function removeBlacklist(phrase, ...blacklist) {
-  let _blacklist = normalizeTags(...blacklist);
-  const _phrase = normalizeTags(phrase);
-  const _whitelist = _.difference(_phrase, _blacklist);
-  return _whitelist;
+  const $blacklist = normalizeTags(...blacklist);
+  const $phrase = normalizeTags(phrase);
+  const $whitelist = _.difference($phrase, $blacklist);
+  return $whitelist;
 }
-
 
 /**
  * @function tagFromAnyField
  * @name tagFromAnyField
  * @description derive tags from other schematype
- * @param {String|Number|Array} val valid value
+ * @param {string | number | Array} value valid value
  * @param {Function} [extract] field tag extractor
- * @return {String[]} set of tags
- * @author lally elias <lallyelias87@mail.com>
- * @license MIT
- * @since 0.1.0
- * @version 0.2.0
- * @private
- * const tags = tagFromAnyField(<val>); // ['js', 'node']
- * const tags = tagFromAnyField(<val>, <extractor>); // ['js', 'node']
- */
-function tagFromAnyField(value, extract) {
-  let _tags = [];
-  const isValidField =
-    (value && (_.isString(value) || _.isNumber(value) || _.isArray(value)));
-  if (isValidField) {
-    let _value = _.clone(value);
-    _value = _.isFunction(extract) ? extract(_value) : _value;
-    _tags = [..._tags].concat(_value);
-  }
-  return _tags;
-}
-
-
-/**
- * @function tagFromDateField
- * @name tagFromDateField
- * @description derive tags from date schematype
- * @param {String|Number} val valid date value
- * @param {Function} [extract] field tag extractor
- * @return {String[]} set of tags
- * @author lally elias <lallyelias87@mail.com>
- * @license MIT
- * @since 0.3.0
- * @version 0.1.0
- * @private
- * const tags = tagFromDateField('2019-01-01'); 
- * //=> ['2019', 'January', 'Tuesday']
- * const tags = tagFromDateField('2019-01-01', <extractor>); 
- * //=> ['2019', 'January', 'Tuesday']
- */
-function tagFromDateField(value, extract) {
-  let _tags = [];
-  const DATE_FORMAT = getString('TAGGABLE_DATE_FORMAT', 'dddd MMMM YYYY');
-  const isValidField = (value && _.isDate(value));
-  if (isValidField) {
-    let _value = moment(value).clone().format(DATE_FORMAT);
-    _value = _.isFunction(extract) ? extract(_value) : _value;
-    _tags = [..._tags].concat(_value);
-  }
-  return _tags;
-}
-
-
-/**
- * @function tagFromMapField
- * @name tagFromMapField
- * @description derive tags from map schematype
- * @param {MongooseMap} mapVal valid instance of MongooseMap
- * @param {Function} [extract] field tag extractor
- * @return {String[]} set of tags
- * @author lally elias <lallyelias87@mail.com>
- * @license MIT
- * @since 0.1.0
- * @version 0.1.0
- * @private
- * const tags = tagFromMapField(<val>); // ['js', 'node']
- * const tags = tagFromMapField(<val>, <extractor>); // ['js', 'node']
- */
-function tagFromMapField(mapVal, extract) {
-  let _tags = [];
-  if (mapVal && isMap(mapVal)) {
-    const _mapVal = _.merge({}, mapVal.toJSON());
-    traverse(_mapVal).forEach(function tagMapVal(value) {
-      if (_.isString(value)) {
-        let _value = _.clone(value);
-        _value = _.isFunction(extract) ? extract(_value) : _value;
-        _tags = [..._tags].concat(_value);
-      }
-    });
-  }
-  return _tags;
-}
-
-
-/**
- * @function tagFromInstanceField
- * @name tagFromInstanceField
- * @description derive tags from ref which are model instance with taggable 
- * behaviour
- * @param {Model} [instance] valid instance of mongoose model which is taggable
- * @param {Function} [extract] field tag extractor
- * @return {String[]} set of tags
- * @author lally elias <lallyelias87@mail.com>
- * @license MIT
- * @since 0.1.0
- * @version 0.1.0
- * @private
- * const tags = tagFromInstanceField(<instance>); // ['js']
- * const tags = tagFromInstanceField(<instance>, <extractor>); // ['js']
- */
-function tagFromInstanceField(instance, extract) {
-  let _tags = [];
-  if (instance && isInstance(instance) && _.isFunction(instance.tag)) {
-    instance.tag();
-    let _value = [].concat(instance.tags);
-    _value = _.isFunction(extract) ? extract(_value) : _value;
-    _tags = [..._tags].concat(_value);
-  }
-  return _tags;
-}
-
-
-/**
- * @function tagFromFields
- * @name tagFromFields
- * @description derive tags from instance fields
- * @param {MongooseMap} mapVal valid instance of MongooseMap
- * @return {String[]} set of tags
+ * @returns {string[]} set of tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.2.0
  * @private
  * @example
- * const tags = tagFromFields(user, taggables, 'tags'); // ['js', 'node']
+ * tagFromAnyField(<val>);
+ * //=> ['js', 'node']
+ *
+ * tagFromAnyField(<val>, <extractor>);
+ * //=> ['js', 'node']
  */
-function tagFromFields(instance, taggables) {
-  // tag set
-  let _tags = [];
-  // collect tags from taggable fields
-  _.forEach(taggables, function tagFromField(extract, pathName) {
-    // obtain field value
-    const value = _.get(instance, pathName);
-    // ignore objectid's
-    if (isObjectId(value)) { return; }
-    // tag from map field
-    _tags = [..._tags, ...tagFromMapField(value, extract)];
-    // tag from model instance
-    _tags = [..._tags, ...tagFromInstanceField(value, extract)];
-    // tag from date field
-    _tags = [..._tags, ...tagFromDateField(value, extract)];
-    // tag from primitive field
-    _tags = [..._tags, ...tagFromAnyField(value, extract)];
-    // TODO handle array of subdoc
-  });
-  // return tags
-  return _tags;
+function tagFromAnyField(value, extract) {
+  let $tags = [];
+  const isValidField =
+    value && (_.isString(value) || _.isNumber(value) || _.isArray(value));
+  if (isValidField) {
+    let $value = _.clone(value);
+    $value = _.isFunction(extract) ? extract($value) : $value;
+    $tags = [...$tags].concat($value);
+  }
+  return $tags;
 }
 
+/**
+ * @function tagFromDateField
+ * @name tagFromDateField
+ * @description derive tags from date schematype
+ * @param {string | number} value valid date value
+ * @param {Function} [extract] field tag extractor
+ * @returns {string[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.3.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * tagFromDateField('2019-01-01');
+ * //=> ['2019', 'January', 'Tuesday']
+ *
+ * tagFromDateField('2019-01-01', <extractor>);
+ * //=> ['2019', 'January', 'Tuesday']
+ */
+function tagFromDateField(value, extract) {
+  let $tags = [];
+  const DATE_FORMAT = getString('TAGGABLE_DATE_FORMAT', 'dddd MMMM YYYY');
+  const isValidField = value && _.isDate(value);
+  if (isValidField) {
+    let $value = moment(value).clone().format(DATE_FORMAT);
+    $value = _.isFunction(extract) ? extract($value) : $value;
+    $tags = [...$tags].concat($value);
+  }
+  return $tags;
+}
 
 /**
- * @function collectTaggables
- * @name collectTaggables
- * @description collect schema taggable fields
- * @param {String} pathName path name
- * @param {SchemaType} schemaType SchemaType of a path
- * @return {Object} hash of all schema taggable paths
+ * @function tagFromMapField
+ * @name tagFromMapField
+ * @description derive tags from map schematype
+ * @param {object} mapVal valid instance of MongooseMap
+ * @param {Function} [extract] field tag extractor
+ * @returns {string[]} set of tags
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
  * @private
- * const taggables = collectTaggables(schema, 'tags');
+ * @example
+ * tagFromMapField(<val>);
+ * //=> ['js', 'node']
+ *
+ * tagFromMapField(<val>, <extractor>);
+ * //=> ['js', 'node']
+ */
+function tagFromMapField(mapVal, extract) {
+  let $tags = [];
+  if (mapVal && isMap(mapVal)) {
+    const $mapVal = _.merge({}, mapVal.toJSON());
+    traverse($mapVal).forEach(function tagMapVal(value) {
+      if (_.isString(value)) {
+        let $value = _.clone(value);
+        $value = _.isFunction(extract) ? extract($value) : $value;
+        $tags = [...$tags].concat($value);
+      }
+    });
+  }
+  return $tags;
+}
+
+/**
+ * @function tagFromInstanceField
+ * @name tagFromInstanceField
+ * @description derive tags from ref which are model instance with taggable
+ * behaviour
+ * @param {object} [instance] valid instance of mongoose model which is taggable
+ * @param {Function} [extract] field tag extractor
+ * @returns {string[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * tagFromInstanceField(<instance>);
+ * //=> ['js']
+ *
+ * tagFromInstanceField(<instance>, <extractor>);
+ * //=> ['js']
+ */
+function tagFromInstanceField(instance, extract) {
+  let $tags = [];
+  if (instance && isInstance(instance) && _.isFunction(instance.tag)) {
+    instance.tag();
+    let $value = [].concat(instance.tags);
+    $value = _.isFunction(extract) ? extract($value) : $value;
+    $tags = [...$tags].concat($value);
+  }
+  return $tags;
+}
+
+/**
+ * @function tagFromFields
+ * @name tagFromFields
+ * @description derive tags from instance fields
+ * @param {object} instance valid instance of mongoose model which is taggable
+ * @param {object[]} taggables valid taggable paths
+ * @returns {string[]} set of tags
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.2.0
+ * @private
+ * @example
+ * tagFromFields(user, taggables, 'tags');
+ * //=> ['js', 'node']
+ */
+function tagFromFields(instance, taggables) {
+  // tag set
+  let $tags = [];
+  // collect tags from taggable fields
+  _.forEach(taggables, function tagFromField(extract, pathName) {
+    // obtain field value
+    const value = _.get(instance, pathName);
+    // ignore objectid's
+    if (isObjectId(value)) {
+      return;
+    }
+    // tag from map field
+    $tags = [...$tags, ...tagFromMapField(value, extract)];
+    // tag from model instance
+    $tags = [...$tags, ...tagFromInstanceField(value, extract)];
+    // tag from date field
+    $tags = [...$tags, ...tagFromDateField(value, extract)];
+    // tag from primitive field
+    $tags = [...$tags, ...tagFromAnyField(value, extract)];
+    // TODO handle array of subdoc
+  });
+  // return tags
+  return $tags;
+}
+
+/**
+ * @function collectTaggables
+ * @name collectTaggables
+ * @description Recursively collect taggagle path
+ * @param {object} schema valid mongose schema instance
+ * @param {string} tagsPath valid tags path, default to `tags`
+ * @returns {object} hash of all schema taggable paths
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * collectTaggables(schema, 'tags');
+ * //=> { ... }
  */
 function collectTaggables(schema, tagsPath) {
   // taggable map
@@ -299,7 +309,7 @@ function collectTaggables(schema, tagsPath) {
   // collect taggable schema paths
   eachPath(schema, function collectTaggablePath(pathName, schemaType) {
     // check if path is taggable
-    const isTaggable = (schemaType.options && schemaType.options.taggable);
+    const isTaggable = schemaType.options && schemaType.options.taggable;
     // if taggable collect
     if (isTaggable && pathName !== tagsPath) {
       // obtain taggable options
@@ -312,27 +322,27 @@ function collectTaggables(schema, tagsPath) {
   return taggables;
 }
 
-
 /**
  * @function taggable
  * @name taggable
  * @description mongoose plugin to add tags and taggable behaviour
- * @param {Schema} schema valid mongoose schema
- * @param {Object} [optns] plugin options
- * @param {String} [optns.path=tags] schema path where tags will be stored.
- * @param {String} [optns.blacklist=[]] list of words to remove from tags.
- * @param {String} [optns.fresh=false] whether to recompute fresh tags.
- * @param {String} [optns.hook=validate] when to run tagging hook.
- * @param {Boolean|String} [optns.index=true] whether to index tags.
- * @param {Boolean} [optns.searchable=true] whether to allow search on tags.
- * @param {Boolean} [optns.hide=true] whether to hide tags on toJSON.
+ * @param {object} schema valid mongoose schema
+ * @param {object} [optns] plugin options
+ * @param {string} [optns.path=tags] schema path where tags will be stored.
+ * @param {string} [optns.blacklist=[]] list of words to remove from tags.
+ * @param {string} [optns.fresh=false] whether to recompute fresh tags.
+ * @param {string} [optns.hook=validate] when to run tagging hook.
+ * @param {boolean | string} [optns.index=true] whether to index tags.
+ * @param {boolean} [optns.searchable=true] whether to allow search on tags.
+ * @param {boolean} [optns.hide=true] whether to hide tags on toJSON.
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
  * @since 0.1.0
  * @version 0.2.0
  * @public
  * @example
- * const taggable = require('@lykmapipo/mongoose-taggable');
+ *
+ * import taggable from '@lykmapipo/mongoose-taggable';
  * const UserSchema = new Schema({ name: { type: String, taggable:true } });
  * UserSchema.plugin(taggable);
  */
@@ -343,17 +353,10 @@ function taggable(schema, optns) {
   const blacklist = [...BLACKLIST, ...options.blacklist];
 
   // add tags schema paths
-  const {
-    path,
-    index,
-    duplicate,
-    searchable,
-    exportable,
-    hide,
-    fresh,
-    hook
-  } = options;
+  const { path, index, duplicate, searchable, exportable, hide, fresh, hook } =
+    options;
   const type = [String];
+  // eslint-disable-next-line no-param-reassign
   schema.add({
     [path]: {
       type,
@@ -362,20 +365,20 @@ function taggable(schema, optns) {
       searchable,
       exportable,
       hide,
-      default: undefined
-    }
+      default: undefined,
+    },
   });
 
   // collect taggable schema paths
   const taggables = collectTaggables(schema, path);
+  // eslint-disable-next-line no-param-reassign
   schema.statics.TAGGABLE_FIELDS = taggables;
-
 
   /**
    * @function tag
    * @name tag
-   * @descriptions add tags to a model instance
-   * @param {...String} [tags] set of tags to add to model instance
+   * @description add tags to a model instance
+   * @param {...string} [tags] set of tags to add to model instance
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
    * @since 0.1.0
@@ -385,29 +388,30 @@ function taggable(schema, optns) {
    * const user = new User();
    * user.tag('js ninja', 'nodejs', 'expressjs');
    */
+  // eslint-disable-next-line no-param-reassign
   schema.methods.tag = function tag(...tags) {
     // reference
     const instance = this;
     // obtain existing tags
-    let _tags = fresh ? [] : (this[path] ? [...this[path]] : []);
+    const oldTags = this[path] ? [...this[path]] : [];
+    let $tags = fresh ? [] : oldTags;
     // merge provided tags
-    _tags = [..._tags, ...tags];
+    $tags = [...$tags, ...tags];
     // collect tags from taggable fields
-    _tags = [..._tags, ...tagFromFields(instance, taggables)];
+    $tags = [...$tags, ...tagFromFields(instance, taggables)];
     // remove blacklist
-    _tags = removeBlacklist(_tags, ...blacklist);
+    $tags = removeBlacklist($tags, ...blacklist);
     // remove stopwords
-    _tags = removeStopwords(..._tags);
+    $tags = removeStopwords(...$tags);
     // set and update tags
-    this[path] = _tags;
+    this[path] = $tags;
   };
-
 
   /**
    * @function untag
    * @name untag
-   * @descriptions remove tags from a model instance
-   * @param {...String} tags set of tags to remove from model instance
+   * @description remove tags from a model instance
+   * @param {...string} tags set of tags to remove from model instance
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
    * @since 0.1.0
@@ -417,30 +421,31 @@ function taggable(schema, optns) {
    * const user = new User();
    * user.untag('js', 'angular');
    */
+  // eslint-disable-next-line no-param-reassign
   schema.methods.untag = function untag(...tags) {
     // normalize provided tags
-    let _tags = normalizeTags(...tags);
+    let $tags = normalizeTags(...tags);
     // remove from tags
-    _tags = _.difference(this[path], _tags);
+    $tags = _.difference(this[path], $tags);
     // set and update tags
-    this[path] = _tags;
+    this[path] = $tags;
   };
-
 
   /**
    * @function preValidate
    * @name preValidate
-   * @descriptions generate tags from taggable paths and set into tags path
+   * @description generate tags from taggable paths and set into tags path
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
    * @since 0.1.0
    * @version 0.1.0
    * @private
    */
-  schema.pre(hook, function preValidate() { this.tag(); });
-
+  // eslint-disable-next-line no-param-reassign
+  schema.pre(hook, function preValidate() {
+    this.tag();
+  });
 }
 
-
 /* exports taggable plugin */
-module.exports = exports = taggable;
+export default taggable;
