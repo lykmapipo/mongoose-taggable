@@ -85,7 +85,7 @@
     "husky": "^7.0.4",
     "lint-staged": "^11.2.6",
     "mocha": "^9.2.2",
-    "mongoose": ">=6.4.5",
+    "mongoose": ">=6.4.6",
     "mongoose-hidden": "^1.9.1",
     "nyc": "^15.1.0",
     "prettier": "^2.7.1",
@@ -93,7 +93,7 @@
     "rollup": "^2.77.0"
   },
   "peerDependencies": {
-    "mongoose": ">=6.4.5"
+    "mongoose": ">=6.4.6"
   },
   "dependencies": {
     "@lykmapipo/common": ">=0.44.5",
